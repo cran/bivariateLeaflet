@@ -1,0 +1,30 @@
+#' Washington DC Census Tract Data
+#'
+#' A dataset containing population and median household income for DC census tracts from ACS 2020.
+#' This dataset includes spatial information for creating choropleth maps.
+#'
+#' @format An sf object with the following variables:
+#' \describe{
+#'   \item{GEOID}{Census tract identifier}
+#'   \item{NAME}{Census tract name}
+#'   \item{B01003_001}{Total population estimate from ACS}
+#'   \item{B19013_001}{Median household income estimate from ACS}
+#'   \item{geometry}{sf geometry column containing tract boundaries}
+#' }
+#' @source {U.S. Census Bureau, 2016-2020 American Community Survey 5-Year Estimates,
+#'          retrieved using tidycensus package}
+#' @examples
+#' data(dc_data)
+#' # View the first few rows of non-geometric columns
+#' print(dc_data[1:5, c("GEOID", "B01003_001", "B19013_001")])
+#' 
+#' # Create a basic map
+#' if (interactive()) {
+#'   map <- create_bivariate_map(
+#'     data = dc_data,
+#'     var_1 = "B01003_001",    # Total population
+#'     var_2 = "B19013_001"     # Median household income
+#'   )
+#' }
+#' @keywords datasets
+dc_data <- structure(function() NULL, class = "dc_data")

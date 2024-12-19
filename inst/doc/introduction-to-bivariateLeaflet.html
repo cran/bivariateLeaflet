@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Michael Duprey, Chris Inkpen; RTI International" />
+
+
+<title>Introduction to bivariateLeaflet</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to bivariateLeaflet</h1>
+<h4 class="author">Michael Duprey, Chris Inkpen; RTI International</h4>
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The <code>bivariateLeaflet</code> package provides tools for creating
+interactive bivariate choropleth maps using Leaflet. Bivariate
+choropleth maps allow you to visualize the relationship between two
+variables simultaneously across geographic regions.</p>
+</div>
+<div id="statement-of-need" class="section level2">
+<h2>Statement of need</h2>
+<p>The <code>bivariateLeaflet</code> package addresses a need in
+geospatial data visualization by providing a tool to create interactive
+bivariate choropleth maps using Leaflet. These maps, which enable the
+simultaneous visualization of relationships between two variables across
+geographic regions, are powerful tools for analyzing complex datasets.
+Despite their potential, creating bivariate maps has historically been a
+challenging task, requiring both technical expertise and substantial
+time investment.</p>
+<p>This package simplifies the process, making bivariate mapping more
+accessible to users of R. It is particularly valuable for researchers
+and analysts working in fields such as demography, justice,
+environmental studies, and public health. For instance,
+<code>bivariateLeaflet</code> allows users to explore the relationship
+between income and education, analyze correlations between temperature
+and precipitation, or visualize connections between healthcare access
+and health outcomes. By integrating seamlessly with the spatial data
+format, <code>sf</code>, and offering an intuitive interface, the
+package enables users to generate interactive maps that are both
+visually compelling and informative.</p>
+<p>The package’s functionality includes the ability to create bivariate
+maps with customizable color schemes, handle data challenges such as
+missing values and outliers, and provide clear, interpretable legends
+for effective communication. Through its integration with Leaflet, it
+ensures that the resulting visualizations are interactive and web-ready,
+enabling users to share insights widely.</p>
+</div>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p>You can install the package from CRAN:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;bivariateLeaflet&quot;</span>)</span></code></pre></div>
+<p>Or install the development version from GitHub:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># install.packages(&quot;devtools&quot;)</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;maduprey/bivariateLeaflet&quot;</span>)</span></code></pre></div>
+</div>
+<div id="data-preparation" class="section level2">
+<h2>Data Preparation</h2>
+<p>The package works with spatial data from various sources. We’ll
+demonstrate using census data at different geographic levels.</p>
+<div id="census-tract-level-data" class="section level3">
+<h3>Census Tract Level Data</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(tidycensus)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co"># Get census API key if you haven&#39;t already</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co"># census_api_key(&quot;YOUR_KEY_HERE&quot;)</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co"># Get ACS data for DC census tracts</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>tract_data <span class="ot">&lt;-</span> <span class="fu">get_acs</span>(</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  <span class="at">geography =</span> <span class="st">&quot;tract&quot;</span>, </span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="at">variables =</span> <span class="fu">c</span>(</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    <span class="st">&quot;B01003_001&quot;</span>, <span class="co"># Total population</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>    <span class="st">&quot;B19013_001&quot;</span>  <span class="co"># Median household income</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  ),</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  <span class="at">state =</span> <span class="st">&quot;DC&quot;</span>, </span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>  <span class="at">year =</span> <span class="dv">2020</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>  <span class="at">geometry =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>)</span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co"># Pivot data to wide format</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>tract_data_wide <span class="ot">&lt;-</span> tract_data <span class="sc">%&gt;%</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>moe) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>    <span class="at">names_from =</span> variable,      </span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>    <span class="at">values_from =</span> estimate      </span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+<div id="county-level-data" class="section level3">
+<h3>County Level Data</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Get county-level data for entire US</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>county_data <span class="ot">&lt;-</span> <span class="fu">get_acs</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">geography =</span> <span class="st">&quot;county&quot;</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">variables =</span> <span class="fu">c</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>    <span class="st">&quot;B01003_001&quot;</span>, <span class="co"># Total population</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>    <span class="st">&quot;B19013_001&quot;</span>  <span class="co"># Median household income</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  ),</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">year =</span> <span class="dv">2020</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">geometry =</span> <span class="cn">TRUE</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>)</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>county_data_wide <span class="ot">&lt;-</span> county_data <span class="sc">%&gt;%</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>moe) <span class="sc">%&gt;%</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>    <span class="at">names_from =</span> variable,</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>    <span class="at">values_from =</span> estimate</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+<div id="block-group-level-data" class="section level3">
+<h3>Block Group Level Data</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Get block group data for DC</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>blockgroup_data <span class="ot">&lt;-</span> <span class="fu">get_acs</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">geography =</span> <span class="st">&quot;block group&quot;</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">variables =</span> <span class="fu">c</span>(</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>    <span class="st">&quot;B01003_001&quot;</span>, <span class="co"># Total population</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>    <span class="st">&quot;B19013_001&quot;</span>  <span class="co"># Median household income</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  ),</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">state =</span> <span class="st">&quot;DC&quot;</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  <span class="at">year =</span> <span class="dv">2020</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="at">geometry =</span> <span class="cn">TRUE</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>)</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>blockgroup_data_wide <span class="ot">&lt;-</span> blockgroup_data <span class="sc">%&gt;%</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>moe) <span class="sc">%&gt;%</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>    <span class="at">names_from =</span> variable,</span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>    <span class="at">values_from =</span> estimate</span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+</div>
+<div id="basic-usage" class="section level2">
+<h2>Basic Usage</h2>
+<p>Let’s start with creating a basic bivariate choropleth map using the
+DC census tract data:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">library</span>(bivariateLeaflet)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Create basic map</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>tract_map <span class="ot">&lt;-</span> <span class="fu">create_bivariate_map</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">data =</span> tract_data_wide,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">var_1 =</span> <span class="st">&quot;B01003_001&quot;</span>,    <span class="co"># Total population</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">var_2 =</span> <span class="st">&quot;B19013_001&quot;</span>     <span class="co"># Median household income</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>)</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co"># Display the map</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>tract_map</span></code></pre></div>
+<div id="understanding-the-default-color-scheme" class="section level3">
+<h3>Understanding the Default Color Scheme</h3>
+<p>The default color scheme uses a 3x3 matrix where:</p>
+<ul>
+<li>Darker blues indicate higher values in both variables</li>
+<li>Lighter colors indicate lower values</li>
+<li>The diagonal represents areas where both variables have similar
+relative values</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Display the default color matrix</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">create_default_color_matrix</span>()</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt;      [,1]      [,2]      [,3]     </span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; [1,] &quot;#64acbe&quot; &quot;#627f8c&quot; &quot;#574249&quot;</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; [2,] &quot;#b0d5df&quot; &quot;#ad9ea5&quot; &quot;#985356&quot;</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; [3,] &quot;#e8e8e8&quot; &quot;#e4acac&quot; &quot;#c85a5a&quot;</span></span></code></pre></div>
+</div>
+</div>
+<div id="advanced-usage" class="section level2">
+<h2>Advanced Usage</h2>
+<div id="custom-color-schemes" class="section level3">
+<h3>Custom Color Schemes</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>sequential_colors <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="st">&quot;#49006a&quot;</span>, <span class="st">&quot;#2d004b&quot;</span>, <span class="st">&quot;#1a0027&quot;</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="st">&quot;#8c96c6&quot;</span>, <span class="st">&quot;#8856a7&quot;</span>, <span class="st">&quot;#810f7c&quot;</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="st">&quot;#edf8fb&quot;</span>, <span class="st">&quot;#bfd3e6&quot;</span>, <span class="st">&quot;#9ebcda&quot;</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>), <span class="at">nrow =</span> <span class="dv">3</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>sequential_map <span class="ot">&lt;-</span> <span class="fu">create_bivariate_map</span>(</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="at">data =</span> tract_data_wide,</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  <span class="at">var_1 =</span> <span class="st">&quot;B01003_001&quot;</span>,</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="at">var_2 =</span> <span class="st">&quot;B19013_001&quot;</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  <span class="at">color_matrix =</span> sequential_colors</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>)</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>sequential_map</span></code></pre></div>
+</div>
+<div id="handling-missing-data" class="section level3">
+<h3>Handling Missing Data</h3>
+<p>Census data often includes missing values (NA) for various reasons.
+Here’s how to handle them:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Identify tracts with missing data</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>missing_data <span class="ot">&lt;-</span> tract_data_wide <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>    <span class="at">missing_pop =</span> <span class="fu">is.na</span>(B01003_001),</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>    <span class="at">missing_income =</span> <span class="fu">is.na</span>(B19013_001)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  )</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co"># Create a map excluding missing data</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>clean_map <span class="ot">&lt;-</span> <span class="fu">create_bivariate_map</span>(</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  <span class="at">data =</span> missing_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span>missing_pop <span class="sc">&amp;</span> <span class="sc">!</span>missing_income),</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  <span class="at">var_1 =</span> <span class="st">&quot;B01003_001&quot;</span>,</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  <span class="at">var_2 =</span> <span class="st">&quot;B19013_001&quot;</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>)</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>clean_map</span></code></pre></div>
+</div>
+<div id="working-with-different-geographic-levels" class="section level3">
+<h3>Working with Different Geographic Levels</h3>
+<div id="county-level-map" class="section level4">
+<h4>County Level Map</h4>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Create a map of US counties</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>county_map <span class="ot">&lt;-</span> <span class="fu">create_bivariate_map</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">data =</span> county_data_wide,</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">var_1 =</span> <span class="st">&quot;B01003_001&quot;</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">var_2 =</span> <span class="st">&quot;B19013_001&quot;</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>county_map</span></code></pre></div>
+</div>
+<div id="block-group-level-map" class="section level4">
+<h4>Block Group Level Map</h4>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Create a detailed block group map</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>blockgroup_map <span class="ot">&lt;-</span> <span class="fu">create_bivariate_map</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">data =</span> blockgroup_data_wide,</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">var_1 =</span> <span class="st">&quot;B01003_001&quot;</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">var_2 =</span> <span class="st">&quot;B19013_001&quot;</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>)</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>blockgroup_map</span></code></pre></div>
+</div>
+</div>
+<div id="custom-labels" class="section level3">
+<h3>Custom Labels</h3>
+<p>You can create custom tooltips for your map by providing your own
+labels:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Create custom labels with tract names and formatted values</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>custom_labels <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="st">&quot;&lt;strong&gt;Census Tract:&lt;/strong&gt; %s&lt;br/&gt;</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="st">   &lt;strong&gt;Population:&lt;/strong&gt; %s&lt;br/&gt;</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="st">   &lt;strong&gt;Median Income:&lt;/strong&gt; $%s&quot;</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  tract_data_wide<span class="sc">$</span>NAME,</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="fu">format</span>(tract_data_wide<span class="sc">$</span>B01003_001, <span class="at">big.mark =</span> <span class="st">&quot;,&quot;</span>),</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="fu">format</span>(tract_data_wide<span class="sc">$</span>B19013_001, <span class="at">big.mark =</span> <span class="st">&quot;,&quot;</span>)</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>) </span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co"># Create map with custom labels</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>map_custom_labels <span class="ot">&lt;-</span> <span class="fu">create_bivariate_map</span>(</span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>  <span class="at">data =</span> tract_data_wide,</span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>  <span class="at">var_1 =</span> <span class="st">&quot;B01003_001&quot;</span>,</span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>  <span class="at">var_2 =</span> <span class="st">&quot;B19013_001&quot;</span>,</span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a>  <span class="at">custom_labels =</span> custom_labels</span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a>)</span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a>map_custom_labels</span></code></pre></div>
+<p>This will create tooltips that show:</p>
+<ul>
+<li>The census tract name</li>
+<li>Population with thousands separator</li>
+<li>Formatted median income with dollar sign and thousands
+separator</li>
+</ul>
+</div>
+</div>
+<div id="best-practices" class="section level2">
+<h2>Best Practices</h2>
+<p>When creating bivariate choropleth maps:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Variable Selection</strong>
+<ul>
+<li>Choose variables that have a meaningful relationship</li>
+<li>Consider whether the variables are independent</li>
+<li>Think about the story you want to tell</li>
+</ul></li>
+<li><strong>Data Distribution</strong>
+<ul>
+<li>Check the distribution of your variables before mapping</li>
+<li>Consider transforming highly skewed data</li>
+<li>Be aware of outliers that might affect the visualization</li>
+</ul></li>
+<li><strong>Color Schemes</strong>
+<ul>
+<li>Use colorblind-friendly palettes</li>
+<li>Ensure sufficient contrast between categories</li>
+<li>Consider your audience when choosing colors</li>
+</ul></li>
+<li><strong>Scale and Geography</strong>
+<ul>
+<li>Choose an appropriate geographic level for your analysis</li>
+<li>Consider the modifiable areal unit problem (MAUP)</li>
+<li>Be consistent with projections</li>
+</ul></li>
+<li><strong>Legend and Labels</strong>
+<ul>
+<li>Provide clear, descriptive labels</li>
+<li>Include units of measurement</li>
+<li>Explain how to interpret the bivariate color scheme</li>
+</ul></li>
+</ol>
+</div>
+<div id="error-handling" class="section level2">
+<h2>Error Handling</h2>
+<p>The package includes various checks and warnings:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Missing variable</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">try</span>(<span class="fu">calculate_tertiles</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>), <span class="st">&quot;nonexistent&quot;</span>, <span class="st">&quot;also_nonexistent&quot;</span>))</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co">#&gt; Error in calculate_tertiles(data.frame(x = 1:5), &quot;nonexistent&quot;, &quot;also_nonexistent&quot;) : </span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#&gt;   One or both of the specified variables are not in the dataset.</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co"># Too few unique values</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>test_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>  <span class="at">var1 =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>),</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>  <span class="at">var2 =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>)</span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="fu">calculate_tertiles</span>(test_data, <span class="st">&quot;var1&quot;</span>, <span class="st">&quot;var2&quot;</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt;   var1 var2 var_1_tertile var_2_tertile</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt; 1    1    1             1             1</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt; 2    1    2             1             1</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; 3    1    3             2             2</span></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; 4    2    4             3             3</span></span></code></pre></div>
+</div>
+<div id="common-issues-and-solutions" class="section level2">
+<h2>Common Issues and Solutions</h2>
+<div id="handling-extreme-outliers" class="section level3">
+<h3>Handling Extreme Outliers</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Identify outliers using IQR method</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>outlier_data <span class="ot">&lt;-</span> tract_data_wide <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>    <span class="at">pop_outlier =</span> B01003_001 <span class="sc">&gt;</span> <span class="fu">quantile</span>(B01003_001, <span class="fl">0.75</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> </span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>      <span class="fl">1.5</span> <span class="sc">*</span> <span class="fu">IQR</span>(B01003_001, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>    <span class="at">income_outlier =</span> B19013_001 <span class="sc">&gt;</span> <span class="fu">quantile</span>(B19013_001, <span class="fl">0.75</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> </span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>      <span class="fl">1.5</span> <span class="sc">*</span> <span class="fu">IQR</span>(B19013_001, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>  )</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="co"># Create map excluding outliers</span></span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>no_outliers_map <span class="ot">&lt;-</span> <span class="fu">create_bivariate_map</span>(</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a>  <span class="at">data =</span> outlier_data <span class="sc">%&gt;%</span> </span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span>pop_outlier <span class="sc">&amp;</span> <span class="sc">!</span>income_outlier),</span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a>  <span class="at">var_1 =</span> <span class="st">&quot;B01003_001&quot;</span>,</span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a>  <span class="at">var_2 =</span> <span class="st">&quot;B19013_001&quot;</span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="working-with-different-projections" class="section level3">
+<h3>Working with Different Projections</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Reproject data if needed</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>reprojected_data <span class="ot">&lt;-</span> tract_data_wide <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="dv">4326</span>)  <span class="co"># WGS 84</span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="co"># Create map with reprojected data</span></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>projected_map <span class="ot">&lt;-</span> <span class="fu">create_bivariate_map</span>(</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>  <span class="at">data =</span> reprojected_data,</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>  <span class="at">var_1 =</span> <span class="st">&quot;B01003_001&quot;</span>,</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>  <span class="at">var_2 =</span> <span class="st">&quot;B19013_001&quot;</span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+</div>
+<div id="further-reading" class="section level2">
+<h2>Further Reading</h2>
+<p>For more information about bivariate choropleth maps:</p>
+<ul>
+<li>Joshua Stevens’ guide: <a href="https://www.joshuastevens.net/cartography/make-a-bivariate-choropleth-map/">Bivariate
+Choropleth Maps</a></li>
+<li>Timo Grossenbacher’s blog post: <a href="https://timogrossenbacher.ch/2019/04/bivariate-maps-with-ggplot2-and-sf/">Bivariate
+Maps with ggplot2 and sf</a></li>
+<li>Census Bureau resources: <a href="https://www.census.gov/programs-surveys/acs/guidance.html">Working
+with Census Data</a></li>
+</ul>
+</div>
+<div id="acknowledgements" class="section level2">
+<h2>Acknowledgements</h2>
+<p>The development of this package was funded by Grant 2020-R2-CX-0027
+from the National Institute of Justice, Office of Justice Programs, U.S.
+Department of Justice. The opinions, findings, and conclusions or
+recommendations expressed are those of the authors and do not
+necessarily reflect those of the U.S. Department of Justice.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

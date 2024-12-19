@@ -1,0 +1,359 @@
+---
+title: "Introduction to bivariateLeaflet"
+author: 
+ - Michael Duprey, Chris Inkpen; RTI International
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to bivariateLeaflet}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 7,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+## Introduction
+
+The `bivariateLeaflet` package provides tools for creating interactive bivariate choropleth maps using Leaflet. Bivariate choropleth maps allow you to visualize the relationship between two variables simultaneously across geographic regions.
+
+
+## Statement of need
+The `bivariateLeaflet` package addresses a need in geospatial data visualization by providing a tool to create interactive bivariate choropleth maps using Leaflet. These maps, which enable the simultaneous visualization of relationships between two variables across geographic regions, are powerful tools for analyzing complex datasets. Despite their potential, creating bivariate maps has historically been a challenging task, requiring both technical expertise and substantial time investment.
+
+This package simplifies the process, making bivariate mapping more accessible to users of R. It is particularly valuable for researchers and analysts working in fields such as demography, justice, environmental studies, and public health. For instance, `bivariateLeaflet` allows users to explore the relationship between income and education, analyze correlations between temperature and precipitation, or visualize connections between healthcare access and health outcomes. By integrating seamlessly with the spatial data format, `sf`, and offering an intuitive interface, the package enables users to generate interactive maps that are both visually compelling and informative.
+
+The package’s functionality includes the ability to create bivariate maps with customizable color schemes, handle data challenges such as missing values and outliers, and provide clear, interpretable legends for effective communication. Through its integration with Leaflet, it ensures that the resulting visualizations are interactive and web-ready, enabling users to share insights widely.
+
+## Installation
+
+You can install the package from CRAN:
+
+```{r eval=FALSE}
+install.packages("bivariateLeaflet")
+```
+
+Or install the development version from GitHub:
+
+```{r eval=FALSE}
+# install.packages("devtools")
+devtools::install_github("maduprey/bivariateLeaflet")
+```
+
+## Data Preparation
+
+The package works with spatial data from various sources. We'll demonstrate using census data at different geographic levels.
+
+### Census Tract Level Data
+
+```{r eval=FALSE}
+library(tidycensus)
+library(tidyr)
+library(dplyr)
+library(sf)
+
+# Get census API key if you haven't already
+# census_api_key("YOUR_KEY_HERE")
+
+# Get ACS data for DC census tracts
+tract_data <- get_acs(
+  geography = "tract", 
+  variables = c(
+    "B01003_001", # Total population
+    "B19013_001"  # Median household income
+  ),
+  state = "DC", 
+  year = 2020,
+  geometry = TRUE
+)
+
+# Pivot data to wide format
+tract_data_wide <- tract_data %>%
+  select(-moe) %>% 
+  pivot_wider(
+    names_from = variable,      
+    values_from = estimate      
+  )
+```
+
+### County Level Data
+
+```{r eval=FALSE}
+# Get county-level data for entire US
+county_data <- get_acs(
+  geography = "county",
+  variables = c(
+    "B01003_001", # Total population
+    "B19013_001"  # Median household income
+  ),
+  year = 2020,
+  geometry = TRUE
+)
+
+county_data_wide <- county_data %>%
+  select(-moe) %>%
+  pivot_wider(
+    names_from = variable,
+    values_from = estimate
+  )
+```
+
+### Block Group Level Data
+
+```{r eval=FALSE}
+# Get block group data for DC
+blockgroup_data <- get_acs(
+  geography = "block group",
+  variables = c(
+    "B01003_001", # Total population
+    "B19013_001"  # Median household income
+  ),
+  state = "DC",
+  year = 2020,
+  geometry = TRUE
+)
+
+blockgroup_data_wide <- blockgroup_data %>%
+  select(-moe) %>%
+  pivot_wider(
+    names_from = variable,
+    values_from = estimate
+  )
+```
+
+## Basic Usage
+
+Let's start with creating a basic bivariate choropleth map using the DC census tract data:
+
+```{r}
+library(bivariateLeaflet)
+```
+
+```{r eval=FALSE}
+# Create basic map
+tract_map <- create_bivariate_map(
+  data = tract_data_wide,
+  var_1 = "B01003_001",    # Total population
+  var_2 = "B19013_001"     # Median household income
+)
+
+# Display the map
+tract_map
+```
+
+### Understanding the Default Color Scheme
+
+The default color scheme uses a 3x3 matrix where:
+
+- Darker blues indicate higher values in both variables
+- Lighter colors indicate lower values
+- The diagonal represents areas where both variables have similar relative values
+
+```{r}
+# Display the default color matrix
+create_default_color_matrix()
+```
+
+## Advanced Usage
+
+### Custom Color Schemes
+
+```{r eval=FALSE}
+sequential_colors <- matrix(c(
+  "#49006a", "#2d004b", "#1a0027",
+  "#8c96c6", "#8856a7", "#810f7c",
+  "#edf8fb", "#bfd3e6", "#9ebcda"
+), nrow = 3, byrow = TRUE)
+
+sequential_map <- create_bivariate_map(
+  data = tract_data_wide,
+  var_1 = "B01003_001",
+  var_2 = "B19013_001",
+  color_matrix = sequential_colors
+)
+
+sequential_map
+```
+
+### Handling Missing Data
+
+Census data often includes missing values (NA) for various reasons. Here's how to handle them:
+
+```{r eval=FALSE}
+# Identify tracts with missing data
+missing_data <- tract_data_wide %>%
+  mutate(
+    missing_pop = is.na(B01003_001),
+    missing_income = is.na(B19013_001)
+  )
+
+# Create a map excluding missing data
+clean_map <- create_bivariate_map(
+  data = missing_data %>% filter(!missing_pop & !missing_income),
+  var_1 = "B01003_001",
+  var_2 = "B19013_001"
+)
+
+clean_map
+```
+
+### Working with Different Geographic Levels
+
+#### County Level Map
+
+```{r eval=FALSE}
+# Create a map of US counties
+county_map <- create_bivariate_map(
+  data = county_data_wide,
+  var_1 = "B01003_001",
+  var_2 = "B19013_001"
+)
+
+county_map
+```
+
+#### Block Group Level Map
+
+```{r eval=FALSE}
+# Create a detailed block group map
+blockgroup_map <- create_bivariate_map(
+  data = blockgroup_data_wide,
+  var_1 = "B01003_001",
+  var_2 = "B19013_001"
+)
+
+blockgroup_map
+```
+
+### Custom Labels
+
+You can create custom tooltips for your map by providing your own labels:
+
+```{r eval=FALSE}
+# Create custom labels with tract names and formatted values
+custom_labels <- sprintf(
+  "<strong>Census Tract:</strong> %s<br/>
+   <strong>Population:</strong> %s<br/>
+   <strong>Median Income:</strong> $%s",
+  tract_data_wide$NAME,
+  format(tract_data_wide$B01003_001, big.mark = ","),
+  format(tract_data_wide$B19013_001, big.mark = ",")
+) 
+
+# Create map with custom labels
+map_custom_labels <- create_bivariate_map(
+  data = tract_data_wide,
+  var_1 = "B01003_001",
+  var_2 = "B19013_001",
+  custom_labels = custom_labels
+)
+
+map_custom_labels
+```
+
+This will create tooltips that show:
+
+- The census tract name
+- Population with thousands separator
+- Formatted median income with dollar sign and thousands separator
+
+## Best Practices
+
+When creating bivariate choropleth maps:
+
+1. **Variable Selection**
+   - Choose variables that have a meaningful relationship
+   - Consider whether the variables are independent
+   - Think about the story you want to tell
+
+2. **Data Distribution**
+   - Check the distribution of your variables before mapping
+   - Consider transforming highly skewed data
+   - Be aware of outliers that might affect the visualization
+
+3. **Color Schemes**
+   - Use colorblind-friendly palettes
+   - Ensure sufficient contrast between categories
+   - Consider your audience when choosing colors
+
+4. **Scale and Geography**
+   - Choose an appropriate geographic level for your analysis
+   - Consider the modifiable areal unit problem (MAUP)
+   - Be consistent with projections
+
+5. **Legend and Labels**
+   - Provide clear, descriptive labels
+   - Include units of measurement
+   - Explain how to interpret the bivariate color scheme
+
+## Error Handling
+
+The package includes various checks and warnings:
+
+```{r error=TRUE}
+# Missing variable
+try(calculate_tertiles(data.frame(x = 1:5), "nonexistent", "also_nonexistent"))
+
+# Too few unique values
+test_data <- data.frame(
+  var1 = c(1,1,1,2),
+  var2 = c(1,2,3,4)
+)
+calculate_tertiles(test_data, "var1", "var2")
+```
+
+## Common Issues and Solutions
+
+### Handling Extreme Outliers
+
+```{r eval=FALSE}
+# Identify outliers using IQR method
+outlier_data <- tract_data_wide %>%
+  mutate(
+    pop_outlier = B01003_001 > quantile(B01003_001, 0.75, na.rm = TRUE) + 
+      1.5 * IQR(B01003_001, na.rm = TRUE),
+    income_outlier = B19013_001 > quantile(B19013_001, 0.75, na.rm = TRUE) + 
+      1.5 * IQR(B19013_001, na.rm = TRUE)
+  )
+
+# Create map excluding outliers
+no_outliers_map <- create_bivariate_map(
+  data = outlier_data %>% 
+    filter(!pop_outlier & !income_outlier),
+  var_1 = "B01003_001",
+  var_2 = "B19013_001"
+)
+```
+
+### Working with Different Projections
+
+```{r eval=FALSE}
+# Reproject data if needed
+reprojected_data <- tract_data_wide %>%
+  st_transform(4326)  # WGS 84
+
+# Create map with reprojected data
+projected_map <- create_bivariate_map(
+  data = reprojected_data,
+  var_1 = "B01003_001",
+  var_2 = "B19013_001"
+)
+```
+
+## Further Reading
+
+For more information about bivariate choropleth maps:
+
+- Joshua Stevens' guide: [Bivariate Choropleth Maps](https://www.joshuastevens.net/cartography/make-a-bivariate-choropleth-map/)
+- Timo Grossenbacher's blog post: [Bivariate Maps with ggplot2 and sf](https://timogrossenbacher.ch/2019/04/bivariate-maps-with-ggplot2-and-sf/)
+- Census Bureau resources: [Working with Census Data](https://www.census.gov/programs-surveys/acs/guidance.html)
+
+## Acknowledgements
+The development of this package was funded by Grant 2020-R2-CX-0027 from the National Institute of Justice, Office of Justice Programs, U.S. Department of Justice. The opinions, findings, and conclusions or recommendations expressed are those of the authors and do not necessarily reflect those of the U.S. Department of Justice.
